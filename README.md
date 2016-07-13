@@ -34,6 +34,12 @@ The URL from which SonarQube will be downloaded, and the resulting directory nam
 
 The value of `sonar.web.context`. Setting this to something like `/sonar` allows you to set the context where Sonar can be accessed (e.g. `hostname/sonar` instead of `hostname`).
 
+    sonar_plugins_dir: /usr/local/sonar/extensions/plugins
+    sonar_plugins_url: []
+
+Directory where downloaded plugins will be installed.
+List of the urls where to download each plugin.
+
     sonar_mysql_username: sonar
     sonar_mysql_password: sonar
     

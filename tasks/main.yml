@@ -31,6 +31,7 @@
     creates=/usr/local/sonar/COPYING
 
 - include: configure.yml
+- include: plugins.yml
 
 - name: Symlink sonar bin.
   file:
