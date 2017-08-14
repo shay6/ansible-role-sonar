@@ -1,7 +1,8 @@
 ---
 dependencies:
   - geerlingguy.java
-  - geerlingguy.mysql
+  - {role: 'geerlingguy.postgresql', when: sonar_database_engine == 'postgres', become: yes}
+  - {role: 'geerlingguy.mysql', when: sonar_database_engine == 'mysql'}
 
 galaxy_info:
   author: geerlingguy
