@@ -9,6 +9,9 @@ sonar_version_directory: "sonarqube-{{ sonar_version }}"
 
 sonar_web_context: ''
 
+sonar_plugins_dir: /usr/local/sonar/extensions/plugins
+sonar_plugins_url: []
+
 # MySQL database connection details.
 sonar_mysql_username: sonar
 sonar_mysql_password: sonar
