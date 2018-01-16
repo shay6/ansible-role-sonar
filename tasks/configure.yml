@@ -14,3 +14,9 @@
       line: "sonar.jdbc.url=jdbc:mysql://{{ sonar_mysql_host }}:{{ sonar_mysql_port }}/{{ sonar_mysql_database }}?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance"
     - regexp: "^sonar.web.context"
       line: "sonar.web.context={{ sonar_web_context }}"
+
+- name: Ensure SonarQube runs as user.
+  lineinfile:
+    dest: /usr/local/sonar/bin/linux-x86-64/sonar.sh
+    regexp: ^#?RUN_AS_USER
+    line: "RUN_AS_USER={{ sonar_user }}"
