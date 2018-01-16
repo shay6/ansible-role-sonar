@@ -12,6 +12,9 @@ sonar_web_context: ''
 sonar_plugins_dir: /usr/local/sonar/extensions/plugins
 sonar_plugins_url: []
 
+# Default: move - Values: move, copy, link
+sonar_install_method: "move"
+
 # MySQL database connection details.
 sonar_mysql_username: sonar
 sonar_mysql_password: sonar
