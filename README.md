@@ -34,6 +34,12 @@ The URL from which SonarQube will be downloaded, and the resulting directory nam
 
 The value of `sonar.web.context`. Setting this to something like `/sonar` allows you to set the context where Sonar can be accessed (e.g. `hostname/sonar` instead of `hostname`).
 
+    sonar_plugins_dir: /usr/local/sonar/extensions/plugins
+    sonar_plugins_url: []
+
+Directory where downloaded plugins will be installed.
+List of the urls where to download each plugin.
+
     sonar_mysql_username: sonar
     sonar_mysql_password: sonar
     
@@ -47,6 +53,18 @@ The value of `sonar.web.context`. Setting this to something like `/sonar` allows
       - localhost
 
 JDBC settings for a connection to a MySQL database. Defaults presume the database resides on localhost and is only accessible on the SonarQube server itself.
+
+    sonar_install_method: "move"
+
+The way you want the install to be done. By default **move** is a rename of the versionned directory into _sonar_. You can set to **link** to create a symlink _sonar_ targeting the versionned directory. You can set to **copy** to copy the versionned directory into _sonar_ and remove the versionned directory (use case: dedicated filesystem).
+
+    sonar_user: sonar
+
+Change Sonar default user running Sonar.
+
+    sonar_group: sonar
+
+Change Sonar default group of the user running Sonar.
 
 ## Dependencies
 
