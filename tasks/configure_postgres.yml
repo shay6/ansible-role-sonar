@@ -4,7 +4,8 @@
   become_user: "{{ postgresql_user }}"
   postgresql_db:
     name: "{{ sonar_database_name }}"
-    encoding: UTF-8 
+    login_host: "{{ sonar_database_host }}"
+    encoding: UTF-8
     state: present
 
 - name: Create a sonar user.
@@ -15,6 +16,7 @@
     password: "{{ sonar_database_password }}"
     db: "{{ sonar_database_name }}"
     priv: "ALL"
+    login_host: "{{ sonar_database_host }}"
 
 - name: Configure SonarQube JDBC settings for Postgres.
   lineinfile:
