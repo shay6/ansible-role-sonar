@@ -66,6 +66,14 @@ Change Sonar default user running Sonar.
 
 Change Sonar default group of the user running Sonar.
 
+LDAP variables: In defaults/main.yml file, give the value 'true' in case you    
+want ldap configuration and supply the password in "ldap_bindPassword" variable.
+Please also provide the appropriate information for your LDAP server in the     
+other variables.                                                                
+                                                                                
+    sonar_ldap: true                                                            
+    ldap_bindPassword: <password>
+
 ## Dependencies
 
   - geerlingguy.java

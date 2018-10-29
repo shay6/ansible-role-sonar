@@ -5,3 +5,21 @@
 
 - name: wait for sonar
   wait_for: port=9000 delay=3 timeout=300
+
+- name: restart sonar for ldap
+  service: name=sonar state=restarted                                           
+  notify: Ensure LDAP is configured well                                        
+                                                                                
+- name: Ensure LDAP is configured well                                          
+  wait_for:                                                                     
+    path: "{{ sonar_web_logs }}"                                                
+    delay: 10                                                                   
+    search_regex: '.*Test LDAP connection.*OK$'                                 
+    timeout: 40                                                                 
+  notify: Insert ldap fact file
+                                                                                
+- name: Insert ldap fact file
+  copy:                                                                         
+    src: files/ldap.fact                                                        
+    dest: /etc/ansible/facts.d/ldap.fact                                        
+    mode: 0755

@@ -4,3 +4,6 @@
 
 - include: configure_postgres.yml
   when: sonar_database_engine == "postgres"
+
+- include: configure_ldap.yml                                              
+  when: sonar_ldap == true

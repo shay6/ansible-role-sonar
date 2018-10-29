@@ -1,0 +1,19 @@
+- name: Copy ldap params to conf file                                           
+  blockinfile:                                                                  
+    path: "{{ sonar_conf_file }}"                                               
+    block: |                                                                    
+         sonar.security.realm={{ sonar_security_realm }}                        
+         sonar.security.savePassword={{ sonar_security_savePassword }}          
+         ldap.url={{ ldap_url }}                                                
+         ldap.authentication={{ ldap_authentication }}                          
+         ldap.bindDn={{ ldap_bindDn }}                                          
+         ldap.bindPassword={{ ldap_bindPassword }}                              
+         ldap.user.baseDn={{ ldap_user_baseDn }}                                
+         ldap.user.request={{ ldap_user_request }}                              
+    backup: yes                                                                 
+  notify: restart sonar for ldap                                                
+
+- name: Create custom fact directory                                         
+  file:                                                                         
+    path: "/etc/ansible/facts.d"                                                
+    state: "directory"
