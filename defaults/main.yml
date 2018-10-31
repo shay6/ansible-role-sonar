@@ -3,7 +3,6 @@ workspace: /root
 sonar_download_validate_certs: yes
 
 sonar_conf_file: /usr/local/sonar/conf/sonar.properties                         
-sonar_web_logs: /usr/local/sonar/logs/web.log
 
 # Default to the latest LTS release.
 sonar_version: 4.5.6
@@ -40,7 +39,7 @@ sonar_mysql_allowed_hosts:
   - "localhost"
 
 # LDAP params
-sonar_ldap: false                                                       
+sonar_ldap: false
 ldap_bindPassword: <password>                                             
                                                                                 
 sonar_security_realm: LDAP                                                      

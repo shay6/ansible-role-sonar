@@ -1,1 +1,3 @@
-{"is_configured" : "true"}
+#!/bin/bash
+LDAP_STATUS=`cat /usr/local/sonar/logs/web.log | grep -q -e ".*Test LDAP connection.*OK$" && echo true || echo false`
+echo "{\"is_configured\" : \"${LDAP_STATUS}\"}"

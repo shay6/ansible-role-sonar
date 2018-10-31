@@ -11,9 +11,4 @@
          ldap.user.baseDn={{ ldap_user_baseDn }}                                
          ldap.user.request={{ ldap_user_request }}                              
     backup: yes                                                                 
-  notify: restart sonar for ldap                                                
-
-- name: Create custom fact directory                                         
-  file:                                                                         
-    path: "/etc/ansible/facts.d"                                                
-    state: "directory"
+  notify: restart sonar
