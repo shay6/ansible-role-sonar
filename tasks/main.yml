@@ -110,3 +110,15 @@
   file:
     path: "{{ workspace }}/{{ sonar_version_directory }}.zip"
     state: absent
+
+- name: Create custom fact directory                                            
+  file:                                                                         
+    path: "/etc/ansible/facts.d"                                                
+    state: "directory"
+
+- name: Insert fact files
+  copy:                                                                         
+    src: "{{ item }}" 
+    dest: /etc/ansible/facts.d/
+    mode: 0755
+  with_fileglob: files/*.fact
