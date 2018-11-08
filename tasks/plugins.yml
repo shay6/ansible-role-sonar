@@ -10,3 +10,10 @@
     dest: "{{ sonar_plugins_dir }}"
   with_items: "{{ sonar_plugins_url }}"
   notify: restart sonar
+
+- name: Removes plugins on demand
+  file:
+    path: "{{ sonar_plugins_dir }}/{{ item }}"
+    state: absent
+  with_items:
+    - "{{ plugins_to_remove }}"

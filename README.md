@@ -36,9 +36,13 @@ The value of `sonar.web.context`. Setting this to something like `/sonar` allows
 
     sonar_plugins_dir: /usr/local/sonar/extensions/plugins
     sonar_plugins_url: []
+    plugins_to_remove: []
 
 Directory where downloaded plugins will be installed.
 List of the urls where to download each plugin.
+List of the plugins .jar file to remove. If you want to upgrade any plugin you
+need to enter the old version in the plugins_to_remove list and the new version
+url in the sonar_plugins_url list.
 
     sonar_mysql_username: sonar
     sonar_mysql_password: sonar

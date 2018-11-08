@@ -18,7 +18,8 @@ sonar_web_context: ''
 sonar_database_engine: mysql
 
 sonar_plugins_dir: /usr/local/sonar/extensions/plugins
-sonar_plugins_url: []
+sonar_plugins_url: [] 
+plugins_to_remove: []
 
 # Default: move - Values: move, copy, link
 sonar_install_method: "move"
@@ -39,13 +40,13 @@ sonar_mysql_allowed_hosts:
   - "localhost"
 
 # LDAP params
-sonar_ldap: false
-ldap_bindPassword: <password>                                             
+sonar_ldap: true
+ldap_bindPassword: 7mpnadx5wvbjFLo@
                                                                                 
 sonar_security_realm: LDAP                                                      
 sonar_security_savePassword: False                                              
-ldap_url: ldaps://ldap.example.com 
+ldap_url: ldaps://ldap.corp.redhat.com                                          
 ldap_authentication: simple                                                     
-ldap_bindDn: uid=sonar,ou=ldap,dc=example,dc=com                      
-ldap_user_baseDn: dc=example,dc=com                                              
+ldap_bindDn: uid=sonar,ou=serviceaccounts,dc=redhat,dc=com                      
+ldap_user_baseDn: dc=redhat,dc=com                                              
 ldap_user_request: (uid={login})
