@@ -40,13 +40,13 @@ sonar_mysql_allowed_hosts:
   - "localhost"
 
 # LDAP params
-sonar_ldap: true
-ldap_bindPassword: 7mpnadx5wvbjFLo@
+sonar_ldap: false
+ldap_bindPassword: <password>
                                                                                 
 sonar_security_realm: LDAP                                                      
 sonar_security_savePassword: False                                              
-ldap_url: ldaps://ldap.corp.redhat.com                                          
+ldap_url: ldaps://ldap.example.com
 ldap_authentication: simple                                                     
-ldap_bindDn: uid=sonar,ou=serviceaccounts,dc=redhat,dc=com                      
-ldap_user_baseDn: dc=redhat,dc=com                                              
+ldap_bindDn: uid=sonar,ou=ldap,dc=example,dc=com                      
+ldap_user_baseDn: dc=example,dc=com                                              
 ldap_user_request: (uid={login})
