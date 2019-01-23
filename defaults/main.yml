@@ -19,7 +19,6 @@ sonar_database_engine: mysql
 
 sonar_plugins_dir: /usr/local/sonar/extensions/plugins
 sonar_plugins_url: [] 
-plugins_to_remove: []
 
 # Default: move - Values: move, copy, link
 sonar_install_method: "move"
