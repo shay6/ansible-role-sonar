@@ -1,4 +1,5 @@
 #!/usr/bin/python
+"""This module designed to manage the installation of SonarQube plugins"""
 # -*- coding: utf-8 -*-
 
 # (c) 2018, Shay Shevach <shshevac@redhat.com>
@@ -18,18 +19,18 @@
 # You should have received a copy of the GNU General Public License
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import, division, print_function
-
+from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
-from ansible.module_utils.basic import AnsibleModule
-import requests
-from requests.auth import HTTPBasicAuth
+
 import os
 import urllib
 from distutils.version import LooseVersion
 import re
 import urllib2
 from HTMLParser import HTMLParser
+import requests
+from requests.auth import HTTPBasicAuth
+from ansible.module_utils.basic import AnsibleModule
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.0',
@@ -123,6 +124,7 @@ RETURN = ''' # '''
 
 
 class LinksParser(HTMLParser):
+    """This class designed to override the LinksParser class"""
     def __init__(self):
         HTMLParser.__init__(self)
         self.recording = 0
@@ -146,7 +148,8 @@ class LinksParser(HTMLParser):
 
 
 def apply_post_api(sonar_url, api, module, plugin_data, status):
-    url = sonar_url + api
+    """This function uses the Sonar plugins API - install, remove or update"""
+    url = "{}{}".format(sonar_url, api)
     requests.post(url, data=plugin_data,
                   auth=HTTPBasicAuth(module.params['username'],
                                      module.params['password']))
@@ -158,6 +161,7 @@ def apply_post_api(sonar_url, api, module, plugin_data, status):
 
 
 def switch_msg(status):
+    """This function switches between messages according to the type of the SUCCESS"""
     return {
         'installing': 'SUCCESS: The plugin is installed',
         'removing': 'SUCCESS: The plugin was removed',
@@ -166,8 +170,9 @@ def switch_msg(status):
 
 
 def get_key_by_name(sonar_url, api, module):
+    """This function get the key of a plugin by parsing json output using its name"""
     key = 'not-found'
-    url = sonar_url + api
+    url = "{}{}".format(sonar_url, api)
     response = requests.get(url, auth=HTTPBasicAuth(module.params['username'],
                                                     module.params['password']))
     json_obj = response.json()
@@ -180,24 +185,26 @@ def get_key_by_name(sonar_url, api, module):
 
 
 def is_plugin_pending(key, status, module):
+    """This function checks by plugin key if this plugin is pending"""
     is_pending = False
     pending_api = '/api/plugins/pending'
     cancel_all_api = '/api/plugins/cancel_all'
     hostname = module.params['hostname']
     port = module.params['sonar_port']
 
-    url = 'http://' + hostname + ':' + str(port) + pending_api
+    url = "http://{}:{}{}".format(hostname, port, pending_api)
     response = requests.get(url, auth=HTTPBasicAuth(module.params['username'],
                                                     module.params['password']))
     json_obj = response.json()
 
     if "errors" in json_obj:
-        cancel_url = 'http://' + hostname + ':' + str(port) + cancel_all_api
+        cancel_url = "http://{}:{}{}".format(hostname, port, cancel_all_api)
         requests.post(cancel_url, auth=HTTPBasicAuth(module.params['username'],
                                                      module.params['password']))
         module.exit_json(changed=False,
-            stdout='FAILED: This plugin is broken or not exist in repo. The operation '
-                'canceled and all plugins was removed from pending list')
+                         stdout='FAILED: This plugin is broken or not exist in '
+                         'repo. The operation canceled and all plugins was '
+                         'removed from pending list')
 
     if status == 'custom':
         for stat in json_obj:
@@ -213,37 +220,50 @@ def is_plugin_pending(key, status, module):
     return is_pending
 
 
-def download_custom_plugin(plugin_url, download_folder, status):
+def download_plugin(plugin_url, module):
+    """This function gets URL of a plugin and downloads it to a pending folder in sonar server"""
+    download_folder = module.params['pending_dir']
     filename = os.path.basename(plugin_url)
+    filename_path = "{}{}".format(download_folder, filename)
 
-    filename_path = download_folder + filename
-    urllib.urlretrieve(plugin_url, filename_path)
+    try:
+        urllib.urlretrieve(plugin_url, filename_path)
+    except:
+        module.exit_json(changed=False, stdout='The URL for downloading is broken')
 
-    if status == 'custom':
-        key = 'not-found'
-        match = re.search('sonar-(.*)-plugin', filename)
-        if match is not None:
-            key = match.group(1)
-            final_key = re.sub('-', '', key)
-            return final_key
+
+def get_key_from_filename(filename):
+    """This function looks for key in a filename and returns it"""
+    final_key = 'not-found'
+    match = re.search('sonar-(.*)-plugin', filename)
+
+    if match is not None:
+        key = match.group(1)
+        final_key = re.sub('-', '', key)
+
+    return final_key
 
 
 def is_plugin_installed(module, sonar_url, installed_list_api):
-    is_installed = False
-    url = sonar_url + installed_list_api
+    """This function checks by plugin name if a specific plugin is installed and returns the api
+     path accordingly"""
+    api_path = '/api/plugins/available'
+    url = "{}{}".format(sonar_url, installed_list_api)
     response = requests.get(url, auth=HTTPBasicAuth(module.params['username'],
                                                     module.params['password']))
     json_obj = response.json()
     for plugin in json_obj['plugins']:
         if plugin['name'] == module.params['name']:
-            is_installed = True
+            api_path = '/api/plugins/installed'
 
-    return is_installed
+    return api_path
 
 
-def is_plugin_installation_available(module, sonar_url, available_list_api):
+def is_plugin_install_available(module, sonar_url, available_list_api):
+    """This function checks by plugin name if a specific plugin version is available and there are
+     no requirements for this installation"""
     is_available = False
-    url = sonar_url + available_list_api
+    url = "{}{}".format(sonar_url, available_list_api)
 
     response = requests.get(url, auth=HTTPBasicAuth(module.params['username'],
                                                     module.params['password']))
@@ -255,7 +275,8 @@ def is_plugin_installation_available(module, sonar_url, available_list_api):
                 is_available = True
                 version_available = plugin['release']['version']
                 if module.params['version']:
-                    comparison = compare_plugins_version(module.params['version'], version_available)
+                    comparison = compare_plugins_version(module.params['version'],
+                                                         version_available)
                     if comparison == 'Bigger':
                         is_available = False
 
@@ -263,21 +284,22 @@ def is_plugin_installation_available(module, sonar_url, available_list_api):
 
 
 def compare_plugins_version(plugin_version, version_available):
+    """This function compare between plugins versions"""
     output = 'Equal'
     comparable_version = version_available
 
     if 'build' in comparable_version:
         fix_version = version_available.replace(")", "")
-        a, b = fix_version.split(" (build ")
-        if a.count('.') == 1:
-            a = a + '.0'
+        part_a, part_b = fix_version.split(" (build ")
+        if part_a.count('.') == 1:
+            part_a = "{}.0".format(part_a)
 
-        comparable_version = a + '.' + b
+        comparable_version = "{}.{}".format(part_a, part_b)
 
     is_compatible = LooseVersion(plugin_version) == LooseVersion(comparable_version)
 
     if not is_compatible:
-        if (LooseVersion(plugin_version) > LooseVersion(comparable_version)):
+        if LooseVersion(plugin_version) > LooseVersion(comparable_version):
             output = 'Bigger'
         else:
             output = 'Lower'
@@ -286,6 +308,8 @@ def compare_plugins_version(plugin_version, version_available):
 
 
 def get_link_from_repo(repo_url, key, version):
+    """This function gets - sonar source URL, key, and version and returns accordingly URL
+     for downloading"""
     final_url = 'not-found'
     html_doc = urllib2.urlopen(repo_url).read()
     parser = LinksParser()
@@ -299,16 +323,20 @@ def get_link_from_repo(repo_url, key, version):
             current_key = re.sub('-', '', plugin)
             if current_key == key:
                 ready_data = re.sub(r'.*sonar', 'sonar', data)
-                final_url = repo_url + data.lstrip() + re.sub('/', '', ready_data) + '-' + version + '.jar'
+                # We used lstrip() to remove Leading whitespace that was added by LinkParser()
+                final_url = "{}{}{}-{}.jar".format(repo_url, data.lstrip(),
+                                                   re.sub('/', '', ready_data), version)
                 return final_url
 
     return final_url
 
 
 def is_plugin_update_available(module, sonar_url, updates_list_api, installed_list_api):
+    """This function checks if a specific plugin version is available for this sonar server and
+     there are no requirements in order to install"""
     is_available = False
     version_installed = 'not-found'
-    url = sonar_url + installed_list_api
+    url = "{}{}".format(sonar_url, installed_list_api)
     response = requests.get(url, auth=HTTPBasicAuth(module.params['username'],
                                                     module.params['password']))
     json_obj = response.json()
@@ -325,13 +353,15 @@ def is_plugin_update_available(module, sonar_url, updates_list_api, installed_li
     elif comparison == 'Lower':
         is_available = True
     else:
-        url = sonar_url + updates_list_api
-        response = requests.get(url, auth=HTTPBasicAuth(module.params['username'], module.params['password']))
+        url = "{}{}".format(sonar_url, updates_list_api)
+        response = requests.get(url, auth=HTTPBasicAuth(module.params['username'],
+                                                        module.params['password']))
         json_obj = response.json()
         for plugin in json_obj['plugins']:
             if plugin['name'] == module.params['name']:
                 for update in plugin['updates']:
-                    if compare_plugins_version(module.params['version'], update['release']['version']) == 'Equal':
+                    if compare_plugins_version(module.params['version'],
+                                               update['release']['version']) == 'Equal':
                         if not update['requires'] and update['status'] == 'COMPATIBLE':
                             is_available = True
 
@@ -339,6 +369,7 @@ def is_plugin_update_available(module, sonar_url, updates_list_api, installed_li
 
 
 def main():
+    """Main function that manage the entire flow of this module"""
     module = AnsibleModule(
         argument_spec=dict(
             name=dict(type='str'),
@@ -354,35 +385,36 @@ def main():
         mutually_exclusive=[['custom_url', 'state']]
     )
 
-    available_list_api = '/api/plugins/available'
-    installed_list_api = '/api/plugins/installed'
-    updates_list_api = '/api/plugins/updates'
-
-    install_api = '/api/plugins/install'
-    remove_api = '/api/plugins/uninstall'
-    update_api = '/api/plugins/update'
-
-    sonarsource_plugins_repo = 'https://binaries.sonarsource.com/Distribution/'
-
     state = module.params['state']
-    sonar_url = 'http://' + module.params['hostname'] + ':' + str(module.params['sonar_port'])
+    sonar_url = "http://{}:{}".format(module.params['hostname'], module.params['sonar_port'])
     plugin_data = {}
 
     if module.params['custom_url']:
         status_pending = 'custom'
-        key = download_custom_plugin(module.params['custom_url'], module.params['pending_dir'], status_pending)
+        download_plugin(module.params['custom_url'], module)
+
+        filename = os.path.basename(module.params['custom_url'])
+        key = get_key_from_filename(filename)
+
         if key != 'not-found':
             if is_plugin_pending(key, status_pending, module):
                 msg = 'SUCCESS: The plugin with key={} is pending'.format(key)
                 module.exit_json(changed=True, stdout=msg)
         else:
-            module.exit_json(changed=True,
-                             stdout='SUCCESS: The plugin was downloaded, but we can not check if it pending')
+            downloaded_plugin_path = "{}{}".format(module.params['pending_dir'], filename)
+            cmd = 'file {}'.format(downloaded_plugin_path)
+            output = module.run_command(cmd)
+            if 'Zip archive data' not in output:
+                cmd = 'rm -f {}'.format(downloaded_plugin_path)
+                module.run_command(cmd)
+                module.exit_json(changed=False, stdout='FAILED: This URL downloading a broken file')
 
-    if is_plugin_installed(module, sonar_url, installed_list_api):
-        plugin_data['key'] = get_key_by_name(sonar_url, installed_list_api, module)
-    else:
-        plugin_data['key'] = get_key_by_name(sonar_url, available_list_api, module)
+            module.exit_json(changed=True,
+                             stdout='SUCCESS: The plugin was downloaded,'
+                                    ' but we can not check if it pending')
+
+    api_path = is_plugin_installed(module, sonar_url, '/api/plugins/installed')
+    plugin_data['key'] = get_key_by_name(sonar_url, api_path, module)
 
     if plugin_data['key'] == 'not-found':
         module.exit_json(changed=False, stdout='FAILED: Plugin not found')
@@ -392,37 +424,44 @@ def main():
             module.fail_json(msg='version field required only if state=installed')
 
         status_pending = 'removing'
+        action_api = '/api/plugins/uninstall'
 
-        if state == 'removed':
-            apply_post_api(sonar_url, remove_api, module, plugin_data, status_pending)
-        else:
+        if state == 'latest':
             status_pending = 'updating'
-            apply_post_api(sonar_url, update_api, module, plugin_data, status_pending)
+            action_api = '/api/plugins/update'
+
+        apply_post_api(sonar_url, action_api, module, plugin_data, status_pending)
     else:
         status_pending = 'installing'
-        is_available = is_plugin_installation_available(module, sonar_url, available_list_api)
+        is_available = is_plugin_install_available(module, sonar_url, '/api/plugins/available')
         if not module.params['version']:
             if is_available:
-                apply_post_api(sonar_url, install_api, module, plugin_data, status_pending)
+                apply_post_api(sonar_url, '/api/plugins/install', module,
+                               plugin_data, status_pending)
         else:
-            link = get_link_from_repo(sonarsource_plugins_repo, plugin_data['key'], module.params['version'])
+            link = get_link_from_repo('https://binaries.sonarsource.com/Distribution/',
+                                      plugin_data['key'], module.params['version'])
             if link == 'not-found':
-                module.exit_json(changed=False, stdout='FAILED: Plugin url not found in sonarsource repo')
+                module.exit_json(changed=False,
+                                 stdout='FAILED: Plugin url not found in sonarsource repo')
 
-            if not is_plugin_installed(module, sonar_url, installed_list_api):
+            if api_path == '/api/plugins/available':
                 if is_available:
-                    download_custom_plugin(link, module.params['pending_dir'], status_pending)
+                    download_plugin(link, module)
                     if is_plugin_pending(plugin_data['key'], status_pending, module):
-                        module.exit_json(changed=True, stdout='SUCCESS: The plugin version is installed')
+                        module.exit_json(changed=True,
+                                         stdout='SUCCESS: The plugin version is installed')
             else:
                 status_pending = 'updating'
-                if is_plugin_update_available(module, sonar_url, updates_list_api, installed_list_api):
-                    download_custom_plugin(link, module.params['pending_dir'], status_pending)
+                if is_plugin_update_available(module, sonar_url,
+                                              '/api/plugins/updates', '/api/plugins/installed'):
+                    download_plugin(link, module)
                     if is_plugin_pending(plugin_data['key'], status_pending, module):
                         module.exit_json(changed=True, stdout='SUCCESS: The plugin version changed')
                 else:
                     module.exit_json(changed=False,
-                                     stdout='FAILED: This version not exist or not available for this sonar server')
+                                     stdout='FAILED: This version not exist or'
+                                            ' not available for this sonar server')
 
 
 if __name__ == "__main__":
